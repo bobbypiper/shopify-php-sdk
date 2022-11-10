@@ -2,6 +2,7 @@
 
 namespace Shopify\Service;
 
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
@@ -85,10 +86,21 @@ abstract class AbstractService
             $args['json'] = $params;
         }
         $this->lastResponse = $this->client->send($request, $args);
-        return json_decode(
+        $return = json_decode(
             $this->lastResponse->getBody()->getContents(),
             true
         );
+
+        //Check if there are any json error.
+        //if there is an error throw an exeption
+        //TOD: make costum exeption.
+        $json_error = json_last_error();
+        if($json_error === JSON_ERROR_NONE){
+            return $return;
+        }
+        else{
+            throw new Exception($json_error);
+        }
     }
 
     public function createObject($className, $data)
